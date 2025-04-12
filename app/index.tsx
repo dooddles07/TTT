@@ -57,23 +57,35 @@ const TicTacToeGame = () => {
   const checkWinner = useCallback(() => {
     const lines: number[][] = [];
     const size = boardSize;
+    const winCondition = size >= 8 ? 5 : size >= 6 ? 4 : size >= 4 ? 3 : size; // 5 in a row for 8x8, 9x9, 10x10; 4 for 6x6, 7x7; 3 for 4x4, 5x5; full row for others
 
+    // Generate winning lines for rows and columns
     for (let i = 0; i < size; i++) {
-      const row = [], col = [];
-      for (let j = 0; j < size; j++) {
-        row.push(i * size + j);
-        col.push(j * size + i);
+      for (let j = 0; j <= size - winCondition; j++) {
+        const row = [];
+        const col = [];
+        for (let k = 0; k < winCondition; k++) {
+          row.push(i * size + j + k); // Horizontal
+          col.push((j + k) * size + i); // Vertical
+        }
+        lines.push(row, col);
       }
-      lines.push(row, col);
     }
 
-    const diag1 = [], diag2 = [];
-    for (let i = 0; i < size; i++) {
-      diag1.push(i * size + i);
-      diag2.push(i * size + (size - i - 1));
+    // Generate winning lines for diagonals
+    for (let i = 0; i <= size - winCondition; i++) {
+      for (let j = 0; j <= size - winCondition; j++) {
+        const diag1 = [];
+        const diag2 = [];
+        for (let k = 0; k < winCondition; k++) {
+          diag1.push((i + k) * size + (j + k)); // Top-left to bottom-right
+          diag2.push((i + k) * size + (j + winCondition - k - 1)); // Top-right to bottom-left
+        }
+        lines.push(diag1, diag2);
+      }
     }
-    lines.push(diag1, diag2);
 
+    // Check if any line meets the win condition
     for (const line of lines) {
       const [first, ...rest] = line;
       if (board[first] && rest.every(i => board[i] === board[first])) {
@@ -83,6 +95,7 @@ const TicTacToeGame = () => {
       }
     }
 
+    // Check for a draw
     if (board.every(square => square !== null)) setWinner("draw");
   }, [board, boardSize]);
 
@@ -190,7 +203,7 @@ const TicTacToeGame = () => {
         <View style={styles.modalContainer}>
           <View style={[styles.modal, themeStyles.modal]}>
             <Text style={[styles.modalText, themeStyles.modalText]}>Choose Board Size</Text>
-            {[3, 4, 5, 6, 7].map(size => (
+            {[3, 4, 5, 6, ].map(size => ( // Added 7x7 option
               <TouchableOpacity key={size} style={[styles.button, themeStyles.button, { marginTop: 10 }]} onPress={() => { setBoardSize(size); setShowBoardSizeModal(false); setShowModeModal(true); }}>
                 <Text style={styles.buttonText}>{size} x {size}</Text>
               </TouchableOpacity>
